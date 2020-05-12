@@ -1,0 +1,41 @@
+{% extends "spending/base.html" %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-md-6 p-2 h-75 overflow-auto">
+      <h4>Gastos nos últimos 30 dias</h4>
+      <br>
+      <table class="table table-striped table-bordered">
+        <thead>
+          <tr>
+            <th>Descrição</th>
+            <th>Valor</th>
+            <th>Em:</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for expense in last_month_spending %}
+          <tr>
+            <td>{{ expense.description }}</td>
+            <td>R$ {{ expense.how_much }}</td>
+            <td>{{ expense.when | date:'d/m/Y' }}</td>
+            <td>
+              <a href="#">Editar</a><br>
+              <a href="#">Remover</a>
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      <p>{{ chart_html | safe }}</p>
+      {% if last_month_spending %}
+        <div class="row p-2">
+          <a href="{% url 'spending:new' %}"><button type="button" class="btn btn-success mr-1">Add new spending</button></a>
+          <button type="button" class="btn btn-info mr-1">Manage profile</button>
+          <button type="button" class="btn btn-info mr-1">Filter by category</button>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}
