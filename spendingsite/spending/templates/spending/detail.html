@@ -1,0 +1,11 @@
+{{ expense.description }}
+<hr>
+{{ expense.how_much }}
+<hr>
+{{ expense.when }}
+<hr>
+<ul>
+  {% for category in expense.category_set.all %}
+    <li>{{ category.description }}</li>
+  {% endfor %}
+</ul>
