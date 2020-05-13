@@ -13,30 +13,8 @@
             {{ field }}
           </div>
         {% endfor %}
-        {% comment %} <div class="form-group">
-          <label for="how_much">Cost</label>
-          <input type="text" class="form-control" id="how_much" name="how_much" value="{{ expense.how_much }}" />
-        </div>
-        <div class="form-group"> <!-- Date input -->
-          <label class="control-label" for="date">When</label>
-          <input class="form-control" id="when" name="when" placeholder="DD/MM/YYYY" type="text" value="{{ expense.when | date:'d/m/Y' }}" />
-        </div> {% endcomment %}
-
         <button type="submit" class="btn btn-primary">Add expense</button>
       </form>
     </div>
   </div>
-  {% comment %} <script>
-    $(document).ready(function(){
-      var date_input=$('input[name="when"]');
-      var container=$('.bootstrap-iso form').length>0 ? $('.bootstrap-iso form').parent() : "body";
-      var options={
-        format: 'dd/mm/yyyy',
-        container: container,
-        todayHighlight: true,
-        autoclose: true,
-      };
-      date_input.datepicker(options);
-    })
-</script> {% endcomment %}
 {% endblock %}
