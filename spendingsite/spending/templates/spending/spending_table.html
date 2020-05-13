@@ -1,41 +1,38 @@
 {% extends "spending/base.html" %}
+{% load spending_filters %}
 
 {% block content %}
   <div class="row">
-    <div class="col-md-6 p-2 h-75 overflow-auto">
-      <h4>Gastos nos últimos 30 dias</h4>
+    <div class="col-md-6 p-2">
+      <h4>Current month spending</h4>
       <br>
-      <table class="table table-striped table-bordered">
+      <table class="table table-striped table-bordered h-25 overflow-auto">
         <thead>
           <tr>
-            <th>Descrição</th>
-            <th>Valor</th>
-            <th>Em:</th>
+            <th>Description</th>
+            <th>How much</th>
+            <th>Date</th>
             <th></th>
           </tr>
         </thead>
         <tbody>
-        {% for expense in last_month_spending %}
+        {% for expense in current_month_spending %}
           <tr>
             <td>{{ expense.description }}</td>
             <td>R$ {{ expense.how_much }}</td>
             <td>{{ expense.when | date:'d/m/Y' }}</td>
             <td>
-              <a href="#">Editar</a><br>
-              <a href="#">Remover</a>
+              <a href="{% url 'spending:update' expense.id %}">Edit</a><br>
+              <a href="{% url 'spending:delete' expense.id %}">Remove</a>
             </td>
           </tr>
         {% endfor %}
         </tbody>
       </table>
-      <p>{{ chart_html | safe }}</p>
-      {% if last_month_spending %}
-        <div class="row p-2">
-          <a href="{% url 'spending:new' %}"><button type="button" class="btn btn-success mr-1">Add new spending</button></a>
-          <button type="button" class="btn btn-info mr-1">Manage profile</button>
-          <button type="button" class="btn btn-info mr-1">Filter by category</button>
-        </div>
-      {% endif %}
+    </div>
+    <div class="col-md-6">
+      <p>Month spending: {{ total_amount|brazilian_currency }}</p>
+      {{ chart_html | safe }}
     </div>
   </div>
 {% endblock %}

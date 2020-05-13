@@ -1,4 +1,5 @@
 {% load static %}
+
 <html>
   <head>
     <title>Spending control</title>
@@ -12,6 +13,10 @@
       <h1 class="navbar-brand mx-auto">Spending control</h1>
     </nav>
     <div class="content container">
+      <div class="row p-2">
+        <a href="{% url 'spending:new' %}"><button type="button" class="btn btn-success mr-1">Add new spending</button></a>
+        <button type="button" class="btn btn-info mr-1">Manage profile</button>
+      </div>
       {% block content %}
       {% endblock %}
     </div>
