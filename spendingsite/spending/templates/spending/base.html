@@ -11,12 +11,14 @@
   <body>
     <nav class="navbar navbar-dark bg-dark">
       <h1 class="navbar-brand mx-auto">Spending control</h1>
+      {% if request.session.saver_id %}
+        <span class="nav-item">Hi there, {{ request.session.saver_name }}</span>
+        <a class="nav-item nav-link" href="{% url 'spending:logout' %}">Logout</a>
+      {% endif %}
+      
+
     </nav>
     <div class="content container">
-      <div class="row p-2">
-        <a href="{% url 'spending:new' %}"><button type="button" class="btn btn-success mr-1">Add new spending</button></a>
-        <button type="button" class="btn btn-info mr-1">Manage profile</button>
-      </div>
       {% block content %}
       {% endblock %}
     </div>
