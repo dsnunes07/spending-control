@@ -1,19 +1,17 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
 from django.views import generic
 from django.utils import timezone
 from django.urls import reverse
 from django.template import loader
+from django.db.models import Sum
 import datetime
-from .models import Expense, Category
+from .models import Expense
+from .forms import ExpenseCreate
 import matplotlib.pyplot as plt
 import io
 import urllib, base64
-
-
-class DetailView(generic.DetailView):
-  model = Expense
-  template_name = 'spending/detail.html'
+import math
 
 def encode_img(fig):
   buf = io.BytesIO()
@@ -21,35 +19,61 @@ def encode_img(fig):
   buf.seek(0)
   return base64.b64encode(buf.read())
 
+def plot_chart(x, y):
+  plt.clf()
+  days_int = range(min(x) + 1, math.ceil(max(x))+1)
+  plt.plot(x, y)
+  plt.xticks(days_int)
+  plt.xlabel('Days')
+  plt.ylabel('R$')
+  return plt.gcf()
+
 def spending_chart(spending_data):
-  total_amount = []
-  days = []
-  for expense in spending_data:
-    days.append(expense.when.day)
-    total_amount.append(float(expense.how_much))
-  plt.plot(days, total_amount)
-  fig = plt.gcf()
-  encoded_img = encode_img(fig)
+  sum_by_day = spending_data.values('when__day').annotate(Sum('how_much'))
+  total_amount = [0]
+  days = [0]
+  acc_amount = 0
+  for day in sum_by_day:
+    days.append(int(day['when__day']))
+    total_amount.append(acc_amount + float(day['how_much__sum']))
+    acc_amount = total_amount[-1]
+  chart_figure = plot_chart(days, total_amount)
+  encoded_img = encode_img(chart_figure)
   uri = 'data:image/png;base64,' + urllib.parse.quote(encoded_img)
-  html = '<img src = "%s"/>' % uri
-  return html
+  html_tag = '<img src = "%s"/>' % uri
+  return total_amount[-1], html_tag
   
 def index(request):
-  last_30_days = timezone.now() - datetime.timedelta(days=30)
-  last_month_spending = Expense.objects.filter(when__gte=last_30_days)
-  spending_chart(last_month_spending)
-
+  current_month_day = timezone.now().day
+  current_month_beginning = timezone.now() - datetime.timedelta(days=current_month_day)
+  current_month_spending = Expense.objects.filter(when__gte=current_month_beginning).order_by('when')
+  total_amount, chart = spending_chart(current_month_spending)
   context = {
-    'last_month_spending': last_month_spending,
-    'chart_html': spending_chart(last_month_spending)
+    'current_month_spending': current_month_spending,
+    'chart_html': chart,
+    'total_amount': total_amount
   }
   return render(request, 'spending/spending_table.html', context)
 
-def new(request):
-  context = {'category_list': Category.objects.all()}
-  return render(request, 'spending/new.html', context)
-
 def create(request):
-  e = Expense(request.POST or None)
-  e.save()
+  expense = ExpenseCreate()
+  if request.method == 'POST':
+    expense = ExpenseCreate(request.POST)
+    expense.save()
+    return HttpResponseRedirect(reverse('spending:index'))
+  else:
+    return render(request, 'spending/new.html', {'form_fields': expense})
+
+def update(request, expense_id):
+  expense = get_object_or_404(Expense, pk=expense_id)
+  expense_form = ExpenseCreate(request.POST or None, instance=expense)
+  if expense_form.is_valid():
+    expense_form.save()
+    return HttpResponseRedirect(reverse('spending:index'))
+  return render(request, 'spending/new.html', {'form_fields': expense_form})
+
+def delete(request, expense_id):
+  expense = get_object_or_404(Expense, pk=expense_id)
+  expense.delete()
   return HttpResponseRedirect(reverse('spending:index'))
+
