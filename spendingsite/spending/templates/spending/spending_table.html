@@ -1,7 +1,10 @@
 {% extends "spending/base.html" %}
 {% load spending_filters %}
-
 {% block content %}
+  <div class="row p-2">
+    <a href="{% url 'spending:new_expense' %}"><button type="button" class="btn btn-success mr-1">Add new spending</button></a>
+    <a href="{% url 'spending:update_saver' request.session.saver_id %}"><button type="button" class="btn btn-info mr-1">Manage profile</button></a>
+  </div>
   <div class="row">
     <div class="col-md-6 p-2">
       <h4>Current month spending</h4>
@@ -22,8 +25,8 @@
             <td>R$ {{ expense.how_much }}</td>
             <td>{{ expense.when | date:'d/m/Y' }}</td>
             <td>
-              <a href="{% url 'spending:update' expense.id %}">Edit</a><br>
-              <a href="{% url 'spending:delete' expense.id %}">Remove</a>
+              <a href="{% url 'spending:update_expense' expense.id %}">Edit</a><br>
+              <a href="{% url 'spending:delete_expense' expense.id %}">Remove</a>
             </td>
           </tr>
         {% endfor %}
@@ -31,7 +34,18 @@
       </table>
     </div>
     <div class="col-md-6">
-      <p>Month spending: {{ total_amount|brazilian_currency }}</p>
+      <p>
+        Current month spending: 
+        {% if exceeds_limit %}
+          <span class="text-danger">
+        {% else %}
+          <span>
+        {% endif %}
+        {{ total_amount|brazilian_currency }}
+        </span>
+      </p>
+      <p>Your monthly limit: {{ monthly_limit|brazilian_currency }}</p>
+      <p> {{ limit_percentual|two_decimal_places }} % of limit</p>
       {{ chart_html | safe }}
     </div>
   </div>
