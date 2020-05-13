@@ -1,0 +1,14 @@
+{% extends "spending/base.html" %}
+
+{% block content %}
+  <form method="post">
+    {% csrf_token %}
+    {% for field in form_fields %}
+      <div class="form-group">
+        <label for="{{ field.label }}">{{ field.label }}</label><br>
+        {{ field }}
+      </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-primary">Register new user</button>
+  </form>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% load static %}
+
+<html>
+  <head>
+    <title>Spending control</title>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/js/bootstrap-datepicker.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/css/bootstrap-datepicker3.css"/>
+  </head>
+  <body>
+    <nav class="navbar navbar-dark bg-dark">
+      <h1 class="navbar-brand mx-auto">Spending control</h1>
+      {% if request.session.saver_id %}
+        <span class="nav-item">Hi there, {{ request.session.saver_name }}</span>
+        <a class="nav-item nav-link" href="{% url 'spending:logout' %}">Logout</a>
+      {% endif %}
+      
+
+    </nav>
+    <div class="content container">
+      {% block content %}
+      {% endblock %}
+    </div>
+  </body>
+</html>
