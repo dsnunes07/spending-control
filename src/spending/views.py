@@ -4,59 +4,25 @@ from django.views import generic
 from django.utils import timezone
 from django.urls import reverse
 from django.template import loader
-from django.db.models import Sum
 import datetime
 from .models import Expense, Saver
 from .forms import ExpenseCreate, SaverCreate
-import matplotlib.pyplot as plt
-import io
-import urllib, base64
+from .charts import month_spending_chart
+from .data import SpendingData
 import math
-
-def encode_img(fig):
-  buf = io.BytesIO()
-  fig.savefig(buf, format='png')
-  buf.seek(0)
-  return base64.b64encode(buf.read())
-
-def plot_chart(x, y, limit):
-  plt.clf()
-  # display month days spaced by 5
-  days_int = range(1, max(30, max(x)), 2)
-  # plot spending chart
-  plt.plot(x, y)
-  # plot horizontal line to show savers limit
-  plt.hlines(limit, 1, max(30, max(x)), colors='red', linestyles='--')
-  plt.xticks(days_int)
-  plt.xlabel('Month day')
-  plt.ylabel('R$')
-  return plt.gcf()
-
-def spending_chart(spending_data, monthly_limit):
-  sum_by_day = spending_data.values('when__day').annotate(Sum('how_much'))
-  total_amount = [0]
-  days = [0]
-  acc_amount = 0
-  for day in sum_by_day:
-    days.append(int(day['when__day']))
-    total_amount.append(acc_amount + float(day['how_much__sum']))
-    acc_amount = total_amount[-1]
-  chart_figure = plot_chart(days, total_amount, monthly_limit)
-  encoded_img = encode_img(chart_figure)
-  uri = 'data:image/png;base64,' + urllib.parse.quote(encoded_img)
-  html_tag = '<img src = "%s"/>' % uri
-  return total_amount[-1], html_tag
   
-def index(request):
+def get_current_saver(request):
   saver_id = request.session.get('saver_id')
   if saver_id is None:
     return login(request)
-  current_saver = Saver.objects.get(id=saver_id)
+  return Saver.objects.get(id=saver_id)
+
+def current_spending(request):
+  current_saver = get_current_saver(request)
   monthly_limit = float(current_saver.monthly_limit)
-  current_month_day = timezone.now().day
-  current_month_beginning = timezone.now() - datetime.timedelta(days=current_month_day)
-  current_month_spending = current_saver.expense_set.filter(when__gte=current_month_beginning).order_by('when')
-  total_amount, chart = spending_chart(current_month_spending, monthly_limit)
+  spending_data = SpendingData(current_saver.expense_set.all())
+  current_month_spending = spending_data.current_month_spending()
+  total_amount, chart = month_spending_chart(current_month_spending, monthly_limit)
   context = {
     'current_month_spending': current_month_spending,
     'chart_html': chart,
@@ -64,6 +30,19 @@ def index(request):
     'monthly_limit': float(monthly_limit),
     'limit_percentual': (total_amount/monthly_limit)*100,
     'exceeds_limit': total_amount > monthly_limit
+  }
+  return render(request, 'spending/current_month_spending.html', context)
+
+def not_current_spending(request, when):
+  current_saver = get_current_saver(request)
+  data = SpendingData(current_saver.expense_set.all())
+  if when == 'past':
+    spending_data = data.past_spending()
+  else:
+    spending_data = data.future_spending()
+  context = {
+    'spending_data': spending_data,
+    'past': when == 'past'
   }
   return render(request, 'spending/spending_table.html', context)
 

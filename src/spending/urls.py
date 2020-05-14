@@ -3,7 +3,8 @@ from . import views
 
 app_name = 'spending'
 urlpatterns = [
-    path('', views.index, name='index'),
+    path('', views.current_spending, name='index'),
+    path('expense/others/<str:when>', views.not_current_spending, name='others'),
     path('expense/add/', views.create, name='new_expense'),
     path('expense/create/', views.create, name='create_expense'),
     path('expense/<int:expense_id>/update/', views.update, name='update_expense'),
