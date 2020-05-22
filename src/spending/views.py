@@ -14,11 +14,15 @@ import math
 def get_current_saver(request):
   saver_id = request.session.get('saver_id')
   if saver_id is None:
-    return login(request)
+    return HttpResponseRedirect(reverse('spending:login'))
   return Saver.objects.get(id=saver_id)
 
 def current_spending(request):
-  current_saver = get_current_saver(request)
+  saver_id = request.session.get('saver_id')
+  if saver_id is None:
+    return HttpResponseRedirect(reverse('spending:login'))
+  
+  current_saver = Saver.objects.get(id=saver_id)
   monthly_limit = float(current_saver.monthly_limit)
   spending_data = SpendingData(current_saver.expense_set.all())
   current_month_spending = spending_data.current_month_spending()
